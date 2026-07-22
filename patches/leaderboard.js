@@ -6,7 +6,6 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 
     const uiOffset = dict.uiSizes + "." + dict.gap
     const rawPlayerNames = dict.playerData + "." + dict.rawPlayerNames
-    const playerBalances = dict.playerData + "." + dict.playerBalances
     const playerTerritories = dict.playerData + "." + dict.playerTerritories
 
 	const { topBarHeight } = matchCode(`aAn = 0.000 * aAd; topBarHeight = Math.floor(0.45 * aAm + aAf);`)
@@ -127,7 +126,10 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 		a0A.fillStyle = aZ.kZ,
 		a0A.fillRect(0, a0F, a04, y9 - a0F);
 		if (__fx.leaderboardFilter.enabled) updateFilteredLb();
-		if (__fx.leaderboardFilter.showingRivals) __fx.leaderboardFilter.computeRivals();
+		if (__fx.leaderboardFilter.showingRivals && leaderboardHasChanged) {
+			__fx.leaderboardFilter.computeRivals();
+			leaderboardHasChanged = false;
+		}
 		var playerPos = (__fx.leaderboardFilter.enabled
 			? this.playerPos
 			: leaderboardPositionsById[game.playerId]
@@ -157,6 +159,7 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 		a0A.fillRect(0, y9 - b0.ur, a04, b0.ur),`)
             replaceRawCode("var hZ,eh=leaderboardPositionsById[game.playerId]<position+windowHeight-1?1:2;for(a0A.font=a07,aY.g0.textAlign(a0A,0),hZ=windowHeight-eh;0<=hZ;hZ--)a0a(leaderboardArray[hZ+position]),a0b(hZ,hZ+position,leaderboardArray[hZ+position]);for(aY.g0.textAlign(a0A,2),hZ=windowHeight-eh;0<=hZ;hZ--)a0a(leaderboardArray[hZ+position]),a0c(hZ,leaderboardArray[hZ+position]);",
                 `var hZ, eh = playerPos < position + windowHeight - 1 ? 1 : 2;
+		if (__fx.leaderboardFilter.showingRivals) eh = 1;
 
 		if (__fx.leaderboardFilter.showingRivals) {
 			var rivalsRestore = [];
@@ -165,10 +168,8 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 					var rivalsEntry = __fx.leaderboardFilter.rivalsData[rivalsRow + position];
 					if (rivalsEntry === undefined) break;
 					var repId = rivalsEntry.representativeId;
-					rivalsRestore.push([repId, ${rawPlayerNames}[repId], ${playerTerritories}[repId], ${playerBalances}[repId], ${cachedDisplayName}[repId]]);
-					${rawPlayerNames}[repId] = "[" + rivalsEntry.clan + "]";
+					rivalsRestore.push([repId, ${playerTerritories}[repId], ${cachedDisplayName}[repId]]);
 					${playerTerritories}[repId] = rivalsEntry.territory;
-					${playerBalances}[repId] = rivalsEntry.territory;
 					${cachedDisplayName}[repId] = "[" + rivalsEntry.clan + "]";
 				}
 				for (a0A.font = a07, aY.g0.textAlign(a0A, 0), hZ = windowHeight - eh; 0 <= hZ; hZ--) {
@@ -183,10 +184,8 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 				}
 			} finally {
 				rivalsRestore.forEach(function(entry) {
-					${rawPlayerNames}[entry[0]] = entry[1];
-					${playerTerritories}[entry[0]] = entry[2];
-					${playerBalances}[entry[0]] = entry[3];
-					${cachedDisplayName}[entry[0]] = entry[4];
+					${playerTerritories}[entry[0]] = entry[1];
+					${cachedDisplayName}[entry[0]] = entry[2];
 				});
 			}
 		} else if (__fx.leaderboardFilter.enabled) {
@@ -222,7 +221,10 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
             replaceRawCode("var a0p=a0q(fJ);return ag.tQ()&&-1!==a0P&&(a0P=-1,a0Y(),b3.d1=!0),b3.dY-a0Q<350&&a0T===a0p&&-1!==(a0p=(a0p=yr(-1,a0p,windowHeight))!==windowHeight&&vU(x,y)?a0p:-1)&&(x=leaderboardArray[a0p+position],a0p===windowHeight-1&&leaderboardPositionsById[game.playerId]>=position+windowHeight-1&&(x=game.playerId),",
                 `var a0p = a0q(fJ);
 		var isEmptySpace = false;
-		return ag.tQ() && -1 !== a0P && (a0P = -1, a0Y(), b3.d1 = !0), b3.dY - a0Q < 350 && a0T === a0p && -1 !== (a0p = (a0p = yr(-1, a0p, windowHeight)) !== windowHeight && vU(x, y) ? a0p : -1) && (x = (__fx.leaderboardFilter.enabled ? (updateFilteredLb(), leaderboardArray[__fx.leaderboardFilter.filteredLeaderboard[a0p + position] ?? (isEmptySpace = true, leaderboardPositionsById[game.playerId])]) : leaderboardArray[a0p + position]), a0p === windowHeight - 1 && (__fx.leaderboardFilter.enabled ? this.playerPos : leaderboardPositionsById[game.playerId]) >=
+		return ag.tQ() && -1 !== a0P && (a0P = -1, a0Y(), b3.d1 = !0), b3.dY - a0Q < 350 && a0T === a0p && -1 !== (a0p = (a0p = yr(-1, a0p, windowHeight)) !== windowHeight && vU(x, y) ? a0p : -1) && (x = (__fx.leaderboardFilter.showingRivals
+			? (isEmptySpace = __fx.leaderboardFilter.rivalsData[a0p + position] === undefined, __fx.leaderboardFilter.rivalsData[a0p + position]?.representativeId ?? game.playerId)
+			: __fx.leaderboardFilter.enabled ? (updateFilteredLb(), leaderboardArray[__fx.leaderboardFilter.filteredLeaderboard[a0p + position] ?? (isEmptySpace = true, leaderboardPositionsById[game.playerId])]) : leaderboardArray[a0p + position]),
+			a0p === windowHeight - 1 && !__fx.leaderboardFilter.showingRivals && (__fx.leaderboardFilter.enabled ? this.playerPos : leaderboardPositionsById[game.playerId]) >=
 			position + windowHeight - 1 && (x = game.playerId),`);
             // Get clan parsing function
             replaceRawCode(`this.uI=function(username){var uK,uJ=username.indexOf("[");return!(uJ<0)&&1<(uK=username.indexOf("]"))-uJ&&uK-uJ<=8?username.substring(uJ+1,uK).toUpperCase().trim():null},`,
