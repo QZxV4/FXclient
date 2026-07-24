@@ -41,4 +41,4 @@ function clear() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export default { save, getAll, remove, clear, load: () => {} };
+export default { save, getAll, remove, clear, load: () => { alert("Game hasn't loaded yet") } };

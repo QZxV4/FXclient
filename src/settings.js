@@ -3,12 +3,12 @@ import winCounter from "./winCounter.js";
 import WindowManager from "./windowManager.js";
 import versionData from '../version.json';
 import { displayChangelog } from './changelog.js';
+import replayHistory from './replayHistory.js'
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
 
 var settings = {
-  //"fontName": "Trebuchet MS",
   //"showBotDonations": false,
   displayWinCounter: true,
   displayTickNumber: true,
@@ -34,8 +34,21 @@ __fx.settings = settings;
 const discontinuedSettings = ["hideAllLinks", "fontName"];
 __fx.makeMainMenuTransparent = false;
 
-/*var settingsGearIcon = document.createElement('img');
-settingsGearIcon.setAttribute('src', 'assets/geari_white.png');*/
+// https://stackoverflow.com/a/34156339
+function saveFile(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], { type: contentType });
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function createButton(text, action) {
+    const button = document.createElement("button");
+    button.textContent = text;
+    button.addEventListener("click", action);
+    return button;
+}
 
 function ReplayHistoryList(container) {
   const title = document.createElement("p");
@@ -56,8 +69,7 @@ function ReplayHistoryList(container) {
 
   function render() {
     list.innerHTML = "";
-    if (!__fx.replayHistory) return; // not initialized yet
-    const replays = __fx.replayHistory.getAll();
+    const replays = replayHistory.getAll();
     if (!replays.length) {
       const empty = document.createElement("small");
       empty.innerText = "No replays saved yet. Finish a game and it'll show up here.";
@@ -75,33 +87,24 @@ function ReplayHistoryList(container) {
       label.innerText = formatTime(replay.timestamp);
       label.style.flex = "1";
 
-      const loadBtn = document.createElement("button");
-      loadBtn.type = "button";
-      loadBtn.innerText = "Load";
-      loadBtn.addEventListener("click", () => {
+      const loadBtn = createButton("Load", () => {
         WindowManager.closeWindow("settings");
-        __fx.replayHistory.load(replay.data);
-      });
-
-      const copyBtn = document.createElement("button");
-      copyBtn.type = "button";
-      copyBtn.innerText = "Copy";
-      copyBtn.addEventListener("click", () => {
-        navigator.clipboard.writeText(replay.data).then(() => {
+        replayHistory.load(replay.data);
+      })
+      const copyBtn = createButton("Copy", () => {
+          navigator.clipboard.writeText(replay.data).then(() => {
           copyBtn.innerText = "Copied!";
           setTimeout(() => (copyBtn.innerText = "Copy"), 1500);
-        }).catch(() => alert("Could not copy automatically \u2014 select the text manually."));
+        }).catch(() => alert("Failed to copy"));
       });
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.innerText = "Delete";
-      deleteBtn.addEventListener("click", () => {
-        __fx.replayHistory.remove(replay.timestamp);
+      const deleteBtn = createButton("Delete", () => {
+        replayHistory.remove(replay.timestamp);
         render();
       });
-
-      row.append(label, loadBtn, copyBtn, deleteBtn);
+      const downloadBtn = createButton("Download", () =>
+        saveFile(replay.data, `replay_${replay.timestamp}.txt`, "text/plain"),
+      )
+      row.append(label, loadBtn, copyBtn, downloadBtn, deleteBtn);
       list.append(row);
     });
   }
@@ -319,15 +322,6 @@ const settingsManager = new (function () {
     fileInput.click();
     fileInput.addEventListener("change", handleFileSelect);
   };
-  // https://stackoverflow.com/a/34156339
-  function saveFile(content, fileName, contentType) {
-    var a = document.createElement("a");
-    var file = new Blob([content], { type: contentType });
-    a.href = URL.createObjectURL(file);
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
   this.exportToFile = function () {
     saveFile(
       JSON.stringify(settings),
@@ -356,8 +350,6 @@ const settingsManager = new (function () {
     window.location.reload();
   };
   this.applySettings = function () {
-    //setVarByName("bu", "px " + settings.fontName);
-
     if (settings.customBackgroundUrl !== "") {
       document.body.style.backgroundImage =
         "url(" + settings.customBackgroundUrl + ")";
@@ -371,15 +363,11 @@ const settingsManager = new (function () {
 })();
 
 export function tryEnterFullscreen() {
-  if (document.fullscreenElement !== null || !document.fullscreenEnabled) return;
+  if (document.fullscreenElement !== null || !document.fullscreenEnabled) return
   document.documentElement
     .requestFullscreen({ navigationUI: "hide" })
-    .then(() => {
-      console.log("Fullscreen mode activated");
-    })
-    .catch((error) => {
-      console.warn("Could not enter fullscreen mode:", error);
-    });
+    .then(() => console.log("Fullscreen mode activated"))
+    .catch((error) => console.warn("Could not enter fullscreen mode:", error))
 }
 
 const openCustomBackgroundFilePicker = () => {
