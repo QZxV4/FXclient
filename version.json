@@ -1,8 +1,8 @@
 {
-    "version": "0.6.24",
-    "lastUpdated": "July 24",
+    "version": "0.6.25",
+    "lastUpdated": "July 26",
     "changes": [
-        "Saved replays now can be downloaded to a local text file (Closed but implemented PR #25 by divineistaken)."
+        "You can now reorder items in the in-game emoji selection menu by enabling the corresponding feature in the FX Client settings. (Merged PR #26 by antimmdev)."
     ],
     "isSignificant": true
 }
