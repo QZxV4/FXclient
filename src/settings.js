@@ -4,6 +4,7 @@ import WindowManager from "./windowManager.js";
 import versionData from '../version.json';
 import { displayChangelog } from './changelog.js';
 import replayHistory from './replayHistory.js'
+import emojiBar from "./emojiBar.js";
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -28,7 +29,9 @@ var settings = {
   keybindButtons: false,
   attackPercentageKeybinds: [],
   hidePropagandaPopup: false,
-  showReplayTimebar: true
+  showReplayTimebar: true,
+  customEmojiBar: false,
+  emojiBar: []
 };
 __fx.settings = settings;
 const discontinuedSettings = ["hideAllLinks", "fontName"];
@@ -110,6 +113,73 @@ function ReplayHistoryList(container) {
   }
 
   this.update = render;
+}
+
+function EmojiBarEditor(container) {
+  const title = document.createElement("p");
+  title.innerHTML = "<b>Custom emoji bar</b> (the 9 emojis shown on the first click of the emoji button)";
+  const slots = document.createElement("div");
+  slots.className = "emoji-bar-slots";
+  const palette = document.createElement("div");
+  palette.className = "emoji-bar-palette";
+  const pager = document.createElement("div");
+  pager.className = "emoji-bar-pager";
+  const note = document.createElement("small");
+  note.innerText = 'Click a slot, then click an emoji or flag below to place it there.';
+  container.append(title, slots, palette, pager, note);
+
+  const perPage = 49;
+  let bar = [], selected = 0, page = 0;
+
+
+  function fill(button, pl) {
+    const tile = emojiBar.tileFor(pl);
+    if (!tile) return button.append(emojiBar.emojiFor(pl));
+    const img = document.createElement("img");
+    img.src = tile;
+    button.append(img);
+  }
+
+  function renderSlots() {
+    slots.innerHTML = "";
+    bar.forEach((pl, i) => {
+      const slot = createButton("", () => (selected = i, renderSlots()));
+      slot.className = "emoji-slot" + (i === selected ? " selected" : "");
+      fill(slot, pl);
+      slots.append(slot);
+    });
+  }
+
+  function renderPage() {
+    const all = emojiBar.palette();
+    const pages = Math.ceil(all.length / perPage) || 1;
+    if (page >= pages) page = pages - 1;
+    palette.innerHTML = "";
+    all.slice(page * perPage, (page + 1) * perPage).forEach((pl) => {
+      const choice = createButton("", () => {
+        bar[selected] = pl;
+        selected = (selected + 1) % 9;
+        renderSlots();
+      });
+      choice.className = "emoji-choice";
+      fill(choice, pl);
+      palette.append(choice);
+    });
+    pager.innerHTML = "";
+    if (pages < 2) return;
+    const label = document.createElement("small");
+    label.innerText = `Page ${page + 1} / ${pages}`;
+    const flip = (step) => (page = (page + step + pages) % pages, renderPage());
+    pager.append(createButton("‹", () => flip(-1)), label, createButton("›", () => flip(1)));
+  }
+
+  this.update = function (settings) {
+    if (settings.emojiBar?.length !== 9) settings.emojiBar = emojiBar.defaultBar.slice();
+    bar = settings.emojiBar;
+    selected = page = 0;
+    renderPage();
+    renderSlots();
+  };
 }
 
 const settingsManager = new (function () {
@@ -210,6 +280,13 @@ const settingsManager = new (function () {
       label: "Replay timebar",
       note: "Show a seek bar when watching replays, allowing you to skip to any point of the replay. Seeking backward re-simulates the replay from the start, which can take a few seconds.",
     },
+    {
+      for: "customEmojiBar",
+      type: "checkbox",
+      label: "Custom emoji bar",
+      note: "Use a fixed set of favorite emojis for the first-click emoji bar instead of having the game constantly reorder it by usage. Choose the emojis below.",
+    },
+    EmojiBarEditor,
     ReplayHistoryList,
     function Footer(container) {
       const versionInfo = document.createElement("p");
