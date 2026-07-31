@@ -15,7 +15,6 @@ import { displayChangelog } from './changelog.js';
 import { reportError } from './debugging.js';
 import replayHistory from './replayHistory.js';
 import replay from './replay.js';
-import emojiBar from './emojiBar.js';
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -44,6 +43,5 @@ __fx.wins = winCounter;
 __fx.customLobby = customLobby;
 __fx.replayHistory = replayHistory;
 __fx.replay = replay;
-__fx.emojiBar = emojiBar;
 
 console.log('Successfully loaded FX Client');
