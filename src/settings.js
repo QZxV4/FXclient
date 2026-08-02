@@ -4,6 +4,7 @@ import WindowManager from "./windowManager.js";
 import versionData from '../version.json';
 import { displayChangelog } from './changelog.js';
 import replayHistory from './replayHistory.js'
+import { LobbyReminderRulesInput } from './lobbyReminderRulesInput.js';
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -31,7 +32,15 @@ var settings = {
   hidePropagandaPopup: false,
   showReplayTimebar: true,
   customQuickEmojisEnabled: false,
-  customQuickEmojis: []
+  customQuickEmojis: [],
+  lobbyReminderRules: [],
+  mutePingAll: false,
+  mutePingEveryone: false,
+  mutePingRoom: false,
+  mutePingClan: false,
+  mutePingLanguage: false,
+  mutePingDirect: false,
+  hideInappropriateNames: false
 };
 __fx.settings = settings;
 const discontinuedSettings = ["hideAllLinks", "fontName"];
@@ -230,6 +239,79 @@ function CustomQuickEmojis(container) {
   };
 }
 
+function SectionHeader(text) {
+  return function (container) {
+    const title = document.createElement("p");
+    const heading = document.createElement("b");
+    heading.innerText = text;
+    title.append(heading);
+    container.append(title);
+  };
+}
+
+function createCheckboxRow(labelText, note) {
+  const label = document.createElement("label");
+  label.className = "checkbox";
+  label.append(labelText + " ");
+  if (note) {
+    const noteElement = document.createElement("small");
+    noteElement.innerText = note;
+    label.append(document.createElement("br"), noteElement);
+  }
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  const checkmark = document.createElement("span");
+  checkmark.className = "checkmark";
+  label.append(checkbox, checkmark);
+  return { label, checkbox };
+}
+
+function MutePingSection(container) {
+  const pingTypes = [
+    { key: "mutePingEveryone", label: "Mute @all, @everyone and @0ya pings" },
+    { key: "mutePingRoom", label: "Mute @room1 - @room4 pings" },
+    { key: "mutePingClan", label: "Mute clan pings (@[TAG])" },
+    { key: "mutePingLanguage", label: "Mute language pings (@en, @de, ...)" },
+    { key: "mutePingDirect", label: "Mute pings of your username" }
+  ];
+
+  const master = createCheckboxRow("Mute all pings");
+  container.append(master.label, document.createElement("br"));
+
+  const subCheckboxes = {};
+  const savedState = {};
+  pingTypes.forEach(({ key, label, note }) => {
+    const row = createCheckboxRow(label, note);
+    container.append(row.label, document.createElement("br"));
+    subCheckboxes[key] = row.checkbox;
+    row.checkbox.addEventListener("change", () => savedState[key] = row.checkbox.checked);
+  });
+
+  function applyMasterState() {
+    const allMuted = master.checkbox.checked;
+    Object.keys(subCheckboxes).forEach(key => {
+      subCheckboxes[key].checked = allMuted ? true : (savedState[key] ?? false);
+      subCheckboxes[key].disabled = allMuted;
+    });
+  }
+  master.checkbox.addEventListener("change", () => {
+    if (master.checkbox.checked) Object.keys(subCheckboxes).forEach(key => savedState[key] = subCheckboxes[key].checked);
+    applyMasterState();
+  });
+
+  this.update = function (settings) {
+    Object.keys(subCheckboxes).forEach(key => savedState[key] = !!settings[key]);
+    master.checkbox.checked = !!settings.mutePingAll;
+    applyMasterState();
+  };
+  this.save = function (targetSettings) {
+    targetSettings.mutePingAll = master.checkbox.checked;
+    Object.keys(subCheckboxes).forEach(key => {
+      targetSettings[key] = master.checkbox.checked ? savedState[key] : subCheckboxes[key].checked;
+    });
+  };
+}
+
 function ReplayHistoryList(container) {
   const title = document.createElement("p");
   title.innerHTML = "<b>Saved Replays</b> (auto-saves your last 5 games)";
@@ -396,6 +478,17 @@ const settingsManager = new (function () {
       type: "checkbox",
       label: "Replay timebar",
       note: "Show a seek bar when watching replays, allowing you to skip to any point of the replay. Seeking backward re-simulates the replay from the start, which can take a few seconds.",
+    },
+    SectionHeader("Lobby game reminders"),
+    LobbyReminderRulesInput,
+    SectionHeader("Muted lobby pings"),
+    MutePingSection,
+    SectionHeader("Other"),
+    {
+      for: "hideInappropriateNames",
+      type: "checkbox",
+      label: "Inappropriate name hider",
+      note: "Replaces player names that contain common offensive or inappropriate words with \"Hidden Name\".",
     },
     ReplayHistoryList,
     function Footer(container) {

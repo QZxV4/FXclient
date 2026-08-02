@@ -15,6 +15,9 @@ import { displayChangelog } from './changelog.js';
 import { reportError } from './debugging.js';
 import replayHistory from './replayHistory.js';
 import replay from './replay.js';
+import lobbyReminders from './lobbyReminders.js';
+import pingFilter from './pingFilter.js';
+import nameFilter from './nameFilter.js';
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -43,5 +46,8 @@ __fx.wins = winCounter;
 __fx.customLobby = customLobby;
 __fx.replayHistory = replayHistory;
 __fx.replay = replay;
+__fx.lobbyReminders = lobbyReminders;
+__fx.pingFilter = pingFilter;
+__fx.nameFilter = nameFilter;
 
 console.log('Successfully loaded FX Client');

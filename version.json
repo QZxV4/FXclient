@@ -1,8 +1,13 @@
 {
-    "version": "0.6.25",
-    "lastUpdated": "July 26",
+    "version": "0.6.26",
+    "lastUpdated": "August 6",
     "changes": [
-        "You can now reorder items in the in-game emoji selection menu by enabling the corresponding feature in the FX Client settings. (Merged PR #26 by antimmdev)."
+        "Improvements to the Emoji Picker now including the missing emojis.",
+        "Added an option to allow highlighting of duplicate IPs in lobby.",
+        "Added an option to hide inappropriate player names",
+        "Added an option to turn off certain pings in the lobby",
+        "Added an option to get custom pings for certain maps/contests/gamemodes.",
+        "Added an option to set a customizable starting attack percentage"
     ],
     "isSignificant": true
 }
