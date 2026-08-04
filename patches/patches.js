@@ -105,6 +105,10 @@ function applyPatches(/** @type {ModUtils} */ { replace, replaceOne, replaceRawC
             "$1 if (__fx.keybindHandler($<event>.key)) return; $3");
     }
 
+    // Custom starting attack percentage
+    replaceRawCode(`il=(bm.eU.data[182].value+1)/1024`,
+        `il = __fx.settings.startingPercentageEnabled ? (__fx.settings.startingPercentage || 50) / 100 : (bm.eU.data[182].value+1)/1024`)
+
     // Set the default font to Trebuchet MS
     replace(/sans-serif"/g, 'Trebuchet MS"');
 

@@ -29,6 +29,8 @@ var settings = {
   customBackgroundUrl: "",
   keybindButtons: false,
   attackPercentageKeybinds: [],
+  startingPercentageEnabled: false,
+  startingPercentage: 50,
   hidePropagandaPopup: false,
   showReplayTimebar: true,
   customQuickEmojisEnabled: false,
@@ -236,6 +238,50 @@ function CustomQuickEmojis(container) {
     build();
     paintSlots();
     close();
+  };
+}
+
+function StartingPercentageInput(container) {
+  const label = document.createElement("label");
+  label.className = "checkbox";
+  label.append("Custom starting attack percentage ");
+  const note = document.createElement("small");
+  note.innerText = "Sets a fixed attack percentage for the troop bar at the start of every game.";
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  const checkmark = document.createElement("span");
+  checkmark.className = "checkmark";
+  label.append(document.createElement("br"), note, checkbox, checkmark);
+  container.append(label, document.createElement("br"));
+
+  const inputRow = document.createElement("div");
+  Object.assign(inputRow.style, { display: "none", transition: "none", animation: "none" });
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = "0";
+  input.max = "100";
+  input.step = "0.1";
+  input.placeholder = "50";
+  inputRow.append("Percentage (%): ", input);
+  container.append(inputRow, document.createElement("br"));
+
+  function updateVisibility() {
+    inputRow.style.display = checkbox.checked ? "block" : "none";
+  }
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked && input.value.trim() === "") input.value = "50";
+    updateVisibility();
+  });
+
+  this.save = function (targetSettings) {
+    targetSettings.startingPercentageEnabled = checkbox.checked;
+    targetSettings.startingPercentage = input.value.trim() === "" ? 50 : Number(input.value);
+  };
+
+  this.update = function (currentSettings) {
+    checkbox.checked = !!currentSettings.startingPercentageEnabled;
+    input.value = currentSettings.startingPercentage ?? 50;
+    updateVisibility();
   };
 }
 
@@ -473,6 +519,7 @@ const settingsManager = new (function () {
       for: "keybindButtons", type: "checkbox",
       label: "Keybind buttons", note: "Show keybind buttons above the troop selector (max 6)"
     },
+    StartingPercentageInput,
     {
       for: "showReplayTimebar",
       type: "checkbox",
