@@ -730,6 +730,18 @@ if (localStorage.getItem("fx_settings") !== null) {
     ...JSON.parse(localStorage.getItem("fx_settings")),
   };
 }
+
+// migrate old emoji settings to new
+if (settings.emojiBar !== undefined || settings.customEmojiBar !== undefined) {
+  if (settings.customQuickEmojis.length === 0 && !settings.customQuickEmojisEnabled) {
+    if (Array.isArray(settings.emojiBar) && settings.emojiBar.length === 9) settings.customQuickEmojis = settings.emojiBar;
+    if (settings.customEmojiBar) settings.customQuickEmojisEnabled = true;
+  }
+  delete settings.emojiBar;
+  delete settings.customEmojiBar;
+  localStorage.setItem("fx_settings", JSON.stringify(settings));
+}
+
 settingsManager.applySettings();
 
 export default settingsManager;
