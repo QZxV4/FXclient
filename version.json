@@ -2,6 +2,7 @@
     "version": "0.6.26",
     "lastUpdated": "August 6",
     "changes": [
+        "Merged PR #27 by QZxV4, implementing the following:",
         "Improvements to the Emoji Picker now including the missing emojis.",
         "Added an option to allow highlighting of duplicate IPs in lobby.",
         "Added a filter to hide inappropriate player names",
