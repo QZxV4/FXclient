@@ -85,11 +85,15 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 	// and skip handling clicks when clicking on an empty space (see the isEmptySpace
 	// variable in the modified leaderboard click handler from the leaderboard filter)
 	{
-		const { game, gIsTeamGame, gIsSingleplayer, rawPlayerNames } = dict
+		const { game, gIsTeamGame, gIsSingleplayer, rawPlayerNames, playerData } = dict
+		const { playerId } = matchCode(
+			`this.someMethod = function(player) { return player === game.playerId && playerData.someArr[player] !== 2; };`,
+			{ dictionary: { game, playerData }, addToDictionary: ["playerId"] }
+		)
 		modifyCode(`
 			${insert(`if (!isEmptySpace && game.gIsTeamGame && __fx.settings.openDonationHistoryFromLb)
 				__fx.donationsTracker.displayHistory(player, playerData.rawPlayerNames, game.gIsSingleplayer);`)}
-			if (playerData.b[player] !== 0 ${insert(`&& !isEmptySpace`)} && !(game.d && !game.e && !game.f)) {
+			if (playerData.b[player] !== 0 ${insert(`&& !isEmptySpace`)} && !(game.d && !game.e && !game.f ${insert(`&& player !== ${game}.${playerId}`)})) {
 				c.animateCamera(player, 800, false, 0);
 			}`, { dictionary: { game, gIsTeamGame, gIsSingleplayer, rawPlayerNames }})
 	}
