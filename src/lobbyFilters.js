@@ -7,8 +7,10 @@ const MAP_DISPLAY_ORDER = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24,
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 21];
 
 export const ANY = "any";
+export const NONE = "none";
 
 export const gameOptions = [
+    { value: NONE, label: "None" },
     { value: ANY, label: "Any" },
     { value: "1v1", label: "1v1" },
     { value: "br", label: "Battle Royale" },
@@ -78,6 +80,7 @@ export function describeGame({ map, mode, isContest }) {
 }
 
 function matchesRule(rule, { map, mode, isContest }) {
+    if (rule.game === NONE) return false;
     if (rule.contest !== ANY && (rule.contest === "yes") !== isContest) return false;
     if (rule.map !== ANY && parseInt(rule.map, 10) !== map) return false;
     if (rule.game !== ANY) {
