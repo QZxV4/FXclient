@@ -2,7 +2,7 @@ import { getSettings } from "./settings.js";
 
 const mentionExpression = /\B@[-\w\[\]]+/g;
 const chatMessageId = 0;
-const everyoneAliases = ["@0ya", "@0Og", "@0pl"];
+const everyoneAliases = ["@0ya", "@0og", "@0pl"];
 
 const settingForType = {
     everyone: "mutePingEveryone",
@@ -26,7 +26,7 @@ function getMentionType(mention) {
     if (languageCodes !== null)
         return languageCodes.some(code => code.toLowerCase() === name) ? "language"
             : name.length === 5 ? "direct" : "other";
-    return name.length === 5 ? "direct" : name.length <= 4 ? "language" : "other";
+    return name.length === 5 ? "direct" : name.length <= 3 ? "language" : "other";
 }
 
 function isMentionMuted(mention, settings) {
@@ -35,9 +35,9 @@ function isMentionMuted(mention, settings) {
     return settingName !== undefined && !!settings[settingName];
 }
 
-function isMuted(message) {
-    if (!message || message.id !== chatMessageId || typeof message.s !== "string") return false;
-    const mentions = message.s.toLowerCase().match(mentionExpression);
+function isMuted(message, textField) {
+    if (!message || message.id !== chatMessageId || typeof message[textField] !== "string") return false;
+    const mentions = message[textField].toLowerCase().match(mentionExpression);
     if (mentions === null) return false;
     const settings = getSettings();
     return mentions.every(mention => isMentionMuted(mention, settings));

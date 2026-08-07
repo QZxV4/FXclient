@@ -44,11 +44,30 @@ function hashInt(n) {
     return (n ^ (n >>> 16)) >>> 0;
 }
 
-function getDuplicateIpHighlightColor(player, teams) {
-    if (player.aEE === undefined) return null;
-    const hasDuplicate = teams.some(team => team.some(other => other !== player && other.aEE === player.aEE));
-    if (!hasDuplicate) return null;
-    return duplicateIpColorPalette[hashInt(player.aEE) % duplicateIpColorPalette.length];
+let cachedTeams = null;
+let cachedTeamsKey = null;
+let cachedIpCounts = null;
+
+function getIpCounts(teams, ipField) {
+    const key = ipField + "|" + teams.map(team => team.length).join(",");
+    if (cachedTeams === teams && cachedTeamsKey === key) return cachedIpCounts;
+    const counts = new Map();
+    teams.forEach(team => team.forEach(entry => {
+        const ip = entry[ipField];
+        if (ip === undefined) return;
+        counts.set(ip, (counts.get(ip) || 0) + 1);
+    }));
+    cachedTeams = teams;
+    cachedTeamsKey = key;
+    cachedIpCounts = counts;
+    return counts;
+}
+
+function getDuplicateIpHighlightColor(player, teams, ipField) {
+    const ip = player[ipField];
+    if (ip === undefined) return null;
+    if ((getIpCounts(teams, ipField).get(ip) || 0) < 2) return null;
+    return duplicateIpColorPalette[hashInt(ip) % duplicateIpColorPalette.length];
 }
 
 export default { getMaxTroops, getDensity, isPointInRectangle, fillTextMultiline, textStyleBasedOnDensity, getDuplicateIpHighlightColor }

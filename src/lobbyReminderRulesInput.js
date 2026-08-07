@@ -1,4 +1,4 @@
-import { gameOptions, mapOptions, contestOptions, refreshMapOptions, ANY } from "./lobbyFilters.js";
+import { gameOptions, mapOptions, contestOptions, refreshMapOptions, ANY, NONE } from "./lobbyFilters.js";
 
 export function LobbyReminderRulesInput(containerElement) {
     const header = document.createElement("p");
@@ -33,7 +33,7 @@ export function LobbyReminderRulesInput(containerElement) {
     this.container = rulesContainer;
     this.rules = [];
     this.addRule = function () {
-        this.rules.push({ game: ANY, map: ANY, contest: ANY });
+        this.rules.push({ game: NONE, map: ANY, contest: ANY });
         this.container.appendChild(createRow.call(this, this.rules.length - 1));
         addButton.scrollIntoView(false);
         columnHeader.style.display = "";
