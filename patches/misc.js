@@ -47,9 +47,6 @@ export default definePatch(({ insertCode, modifyCode, replaceCode }) => {
     return alert("Error:\\n" + e.filename + " " + e.lineno + " " + e.colno + " " + e.message);`
   )
 
-  // Invalid hostname detection avoidance
-  replaceCode(`this.hostnameIsValid = a.indexOf("territorial.io") >= 0;`, `this.hostnameIsValid = true;`)
-
   // for the custom lobby version
   try {
     modifyCode(`new a("⚔️<br>" + __L(), function() {
