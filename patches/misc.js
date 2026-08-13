@@ -47,6 +47,15 @@ export default definePatch(({ insertCode, modifyCode, replaceCode }) => {
     return alert("Error:\\n" + e.filename + " " + e.lineno + " " + e.colno + " " + e.message);`
   )
 
+  // use textContent so that usernames dont get parsed that contain html code
+  replaceCode(
+    `cell.style.width = data.columnWidths[columnIndex] + "%";
+    cell.innerHTML = rows[rowIndex][columnIndex].content;`,
+
+    `cell.style.width = data.columnWidths[columnIndex] + "%";
+    cell.textContent = rows[rowIndex][columnIndex].content;`
+  )
+
   // for the custom lobby version
   try {
     modifyCode(`new a("⚔️<br>" + __L(), function() {
